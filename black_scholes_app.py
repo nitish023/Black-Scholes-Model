@@ -22,6 +22,44 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+st.markdown("""
+<style>
+    .metric-container {
+            display: flex;
+            justify-content: center;
+            align_items: center;
+            padding: 8px;
+            width: auto;
+            margin: 0 auto;
+    }
+            
+    .metric-call {
+            background-color: #90ee90;
+            color: black;
+            margin-right: 10px;
+            border-radius: 10px;
+    }
+            
+    .metric-put {
+            background-color: #ffcccb;
+            color: black;
+            border-radius: 10px;
+    }
+            
+    .metric-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 0;
+    }
+            
+    .metric-label {
+            font-size: 1rem;
+            margin: 4px;
+    }
+    
+</style>
+            """, unsafe_allow_html=True)
+
 #Sidebar
 with st.sidebar:
     st.header("📊 Black-Scholes Model Inputs")
