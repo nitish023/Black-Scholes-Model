@@ -85,8 +85,8 @@ with st.sidebar:
 
 
 def plot_heatmap(bs_model, spot_range, vol_range, strike):
-    call_prices = np.zeroes((len(vol_range), len(spot_range)))
-    put_prices = np.zeroes((len(vol_range), len(spot_range)))
+    call_prices = np.zeros((len(vol_range), len(spot_range)))
+    put_prices = np.zeros((len(vol_range), len(spot_range)))
 
     for i, vol in enumerate(vol_range):
         for j, spot in enumerate(spot_range):
