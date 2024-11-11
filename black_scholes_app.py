@@ -7,6 +7,7 @@ Author: Nitish Chawla
 
 import streamlit as st
 import numpy as np
+import pandas as pd
 import plotly.graph_objects as go
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -70,3 +71,27 @@ def plot_heatmap(bs_model, spot_range, vol_range, strike):
     ax_put.set_ylabel("Volatility")
 
     return fig_call, fig_put
+
+
+#Main Page
+st.title("Black-Scholes Option Pricing Model")
+
+#Inputs Table
+input_data = {
+    "Current Price": [current_price],
+    "Strike Price": [strike],
+    "Time to Maturity": [time_to_maturity],
+    "Volatility": [volatility],
+    "Risk-Free Interest Rate": [interest_rate]
+}
+
+input_df = pd.DataFrame(input_data)
+st.table(input_df)
+
+#Black-Scholes Model
+bs_model = BlackScholes(time_to_maturity, strike, current_price, volatility, interest_rate)
+call_price = bs_model.call_price()
+put_price = bs_model.put_price()
+
+#Displaying Option Prices
+col1, col2 = st.columns([1, 1], gap="small")
