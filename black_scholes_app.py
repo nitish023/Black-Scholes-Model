@@ -153,3 +153,19 @@ with col2:
             </div>
         </div>
                 """, unsafe_allow_html=True)
+    
+st.markdown("")
+st.title("Option Prices Interactive Heatmap")
+st.info("The heatmap below shows the option prices for different spot prices and volatilities while keeping the strike price constant.")
+
+col1, col2 = st.columns([1, 1], gap="small")
+
+with col1:
+    st.subheader("Call Price Heatmap")
+    heatmap_fig_call, _ = plot_heatmap(bs_model, spot_range, vol_range, strike)
+    st.pyplot(heatmap_fig_call)
+
+with col2:
+    st.subheader("Put Price Heatmap")
+    _, heatmap_fig_put = plot_heatmap(bs_model, spot_range, vol_range, strike)
+    st.pyplot(heatmap_fig_put)
