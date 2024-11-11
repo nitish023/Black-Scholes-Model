@@ -55,12 +55,12 @@ class BlackScholes:
         gamma = norm.pdf(d1) / (self.current_price * self.volatility * sqrt(self.time_to_maturity))
         return gamma
     
-    if __name__ == "__main__":
-        time_to_maturity = 1
-        strike = 100
-        current_price = 100
-        volatility = 0.2
-        interest_rate = 0.05
+if __name__ == "__main__":
+    time_to_maturity = 1
+    strike = 100
+    current_price = 100
+    volatility = 0.2
+    interest_rate = 0.05
 
-        BS = BlackScholes(time_to_maturity = time_to_maturity, strike = strike, current_price = current_price, volatility = volatility, interest_rate = interest_rate)
+    BS = BlackScholes(time_to_maturity = time_to_maturity, strike = strike, current_price = current_price, volatility = volatility, interest_rate = interest_rate)
 
