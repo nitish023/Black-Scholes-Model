@@ -67,11 +67,11 @@ with st.sidebar:
     linkedin_url = "https://www.linkedin.com/in/nitishchawla-/"
     st.markdown(f'<a href="{linkedin_url}" target="_blank" style="text-decoration: none; color: inherit;"><img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="25" height="25" style="vertical-align: middle; margin-right: 10px;">`Nitish Chawla`</a>', unsafe_allow_html=True)
 
-    current_price = st.number_input("Current Price", min_value=0.0, step=1.0, value=100.0)
-    strike = st.number_input("Strike Price", min_value=0.0, step=1.0, value=100.0)
-    time_to_maturity = st.number_input("Time to Maturity (Years)", min_value=0.0, step=0.01, value=1.0)
-    volatility = st.number_input("Volatility (σ)", min_value=0.0, max_value=1.0, step=0.01, value=0.2)
-    interest_rate = st.number_input("Risk-Free Interest Rate", min_value=0.0, max_value=1.0, step=0.01, value=0.05)
+    current_price = st.number_input("Current Price", min_value=0.0, step=1.0, value=100.0, help="The current market price of the underlying asset.")
+    strike = st.number_input("Strike Price", min_value=0.0, step=1.0, value=100.0, help="The price at which the option can be exercised at maturity.")
+    time_to_maturity = st.number_input("Time to Maturity (Years)", min_value=0.0, step=0.01, value=1.0, help="The time remaining until the option's expiration date, measured in years.")
+    volatility = st.number_input("Volatility (σ)", min_value=0.0, max_value=1.0, step=0.01, value=0.2, help="The estimated standard deviation of the asset's returns, representing market volatility.")
+    interest_rate = st.number_input("Risk-Free Interest Rate", min_value=0.0, max_value=1.0, step=0.01, value=0.05, help="The risk-free interest rate, often based on government bonds, representing the cost of capital.")
 
     st.markdown("---")
     calculate_button = st.button("Heatmap Parameters")
@@ -96,14 +96,14 @@ def plot_heatmap(bs_model, spot_range, vol_range, strike):
 
     #Plotting Call Price Heatmap
     fig_call, ax_call = plt.subplots(figsize=(10, 8))
-    sns.heatmap(call_prices, xticklabels=np.round(spot_range, 2), yticklabels=np.round(vol_range, 2), annot=True, fmt=".2f", cmap="viridis", ax=ax_call)
+    sns.heatmap(call_prices, xticklabels=np.round(spot_range, 2), yticklabels=np.round(vol_range, 2), annot=True, fmt=".2f", cmap="RdYlGn", ax=ax_call)
     ax_call.set_title("Call Option Prices")
     ax_call.set_xlabel("Spot Price")
     ax_call.set_ylabel("Volatility")
 
     #Plotting Put Price Heatmap
     fig_put, ax_put = plt.subplots(figsize=(10, 8))
-    sns.heatmap(put_prices, xticklabels=np.round(spot_range, 2), yticklabels=np.round(vol_range, 2), annot=True, fmt=".2f", cmap="viridis", ax=ax_put)
+    sns.heatmap(put_prices, xticklabels=np.round(spot_range, 2), yticklabels=np.round(vol_range, 2), annot=True, fmt=".2f", cmap="RdYlGn", ax=ax_put)
     ax_put.set_title("Put Option Prices")
     ax_put.set_xlabel("Spot Price")
     ax_put.set_ylabel("Volatility")
