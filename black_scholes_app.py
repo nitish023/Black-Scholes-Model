@@ -97,15 +97,46 @@ with st.sidebar:
         help="The option's expiration date.",
     )
     time_to_maturity = (exercise_date - today).days / 365
-    volatility = st.number_input("Volatility (σ)", min_value=0.0, max_value=1.0, step=0.01, value=0.2, help="A measure of the stock's price variability. Higher values indicate more volatile stocks. 0% means no volatility (unrealistic).")
-    interest_rate = st.number_input("Risk-Free Interest Rate", min_value=0.0, max_value=1.0, step=0.01, value=0.05, help="The theoretical rate of return of an investment with zero-risk. Usually based on government bonds. 100% means doubling your money with no risk (again unrealistic).")
-
+    
+    volatility_pct = st.number_input(
+        "Volatility (σ) (%)",
+        min_value=0.0,
+        max_value=100.0,
+        step=1.0,
+        value=20.0,
+        help="A measure of the stock's price variability. Higher values indicate more volatile stocks. 0% means no volatility (unrealistic).",
+    )
+    interest_rate_pct = st.number_input(
+        "Risk-Free Interest Rate (%)",
+        min_value=0.0,
+        max_value=100.0,
+        step=1.0,
+        value=5.0,
+        help="The theoretical rate of return of an investment with zero-risk. Usually based on government bonds. 100% means doubling your money with no risk (again unrealistic).",
+    )
+    volatility = volatility_pct / 100
+    interest_rate = interest_rate_pct / 100
     st.markdown("---")
     calculate_button = st.button("Heatmap Parameters")
-    spot_min = st.number_input("Min Spot Price", min_value=0.01, value=current_price*0.8, step=0.01)
-    spot_max = st.number_input("Max Spot Price", min_value=0.01, value=current_price*1.2, step=0.01)
-    vol_min = st.slider("Min Volatility for Heatmap", min_value=0.01, max_value=1.0, value=volatility*0.5, step=0.01)
-    vol_max = st.slider("Max Volatility for Heatmap", min_value=0.01, max_value=1.0, value=volatility*1.5, step=0.01)
+    spot_min = st.number_input("Min Spot Price", min_value=0.01, value=current_price * 0.8, step=0.01)
+    spot_max = st.number_input("Max Spot Price", min_value=0.01, value=current_price * 1.2, step=0.01)
+    vol_min_pct = st.slider(
+        "Min Volatility for Heatmap (%)",
+        min_value=1.0,
+        max_value=100.0,
+        value=volatility_pct * 0.5,
+        step=1.0,
+    )
+    vol_max_pct = st.slider(
+        "Max Volatility for Heatmap (%)",
+        min_value=1.0,
+        max_value=100.0,
+        value=volatility_pct * 1.5,
+        step=1.0,
+    )
+
+    vol_min = vol_min_pct / 100
+    vol_max = vol_max_pct / 100
 
     spot_range = np.linspace(spot_min, spot_max, 10)
     vol_range = np.linspace(vol_min, vol_max, 10)
@@ -114,6 +145,7 @@ with st.sidebar:
 def plot_heatmap(bs_model, spot_range, vol_range, strike):
     call_prices = np.zeros((len(vol_range), len(spot_range)))
     put_prices = np.zeros((len(vol_range), len(spot_range)))
+    vol_labels = np.round(np.array(vol_range) * 100, 2)
 
     for i, vol in enumerate(vol_range):
         for j, spot in enumerate(spot_range):
@@ -123,17 +155,17 @@ def plot_heatmap(bs_model, spot_range, vol_range, strike):
 
     #Plotting Call Price Heatmap
     fig_call, ax_call = plt.subplots(figsize=(10, 8))
-    sns.heatmap(call_prices, xticklabels=np.round(spot_range, 2), yticklabels=np.round(vol_range, 2), annot=True, fmt=".2f", cmap="RdYlGn", ax=ax_call)
+    sns.heatmap(call_prices, xticklabels=np.round(spot_range, 2), yticklabels=vol_labels, annot=True, fmt=".2f", cmap="RdYlGn", ax=ax_call)
     ax_call.set_title("Call Option Prices")
     ax_call.set_xlabel("Spot Price")
     ax_call.set_ylabel("Volatility")
 
     #Plotting Put Price Heatmap
     fig_put, ax_put = plt.subplots(figsize=(10, 8))
-    sns.heatmap(put_prices, xticklabels=np.round(spot_range, 2), yticklabels=np.round(vol_range, 2), annot=True, fmt=".2f", cmap="RdYlGn", ax=ax_put)
+    sns.heatmap(put_prices, xticklabels=np.round(spot_range, 2), yticklabels=vol_labels, annot=True, fmt=".2f", cmap="RdYlGn", ax=ax_put)
     ax_put.set_title("Put Option Prices")
     ax_put.set_xlabel("Spot Price")
-    ax_put.set_ylabel("Volatility")
+    ax_put.set_ylabel("Volatility (%)")
 
     return fig_call, fig_put
 
@@ -147,8 +179,8 @@ input_data = {
     "Strike Price": [strike],
     "Exercise Date": [exercise_date],
     "Time to Maturity (Years)": [time_to_maturity],
-    "Volatility": [volatility],
-    "Risk-Free Interest Rate": [interest_rate]
+    "Volatility (%)": [volatility_pct],
+    "Risk-Free Interest Rate (%)": [interest_rate_pct]
 }
 
 input_df = pd.DataFrame(input_data)
