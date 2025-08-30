@@ -6,7 +6,7 @@ This project implements the Black-Scholes Option Pricing Model using Streamlit, 
 - **User-friendly Sidebar**: Input fields to enter the parameters for the Black-Scholes model, including:
   - Current Price
   - Strike Price
-  - Time to Maturity (in years)
+  - Exercise Date (option expiration)
   - Volatility (σ)
   - Risk-Free Interest Rate
 - **Interactive Heatmap Parameters**: Users can specify ranges for spot prices and volatilities to generate heatmaps that visualize how option prices change with these variables.
