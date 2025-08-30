@@ -8,9 +8,13 @@ Author: Nitish Chawla
 import streamlit as st
 import numpy as np
 import pandas as pd
+import joblib
 import plotly.graph_objects as go
 import matplotlib.pyplot as plt
 import seaborn as sns
+import yfinance as yf
+import datetime as dt
+from ml_vol import make_features, predict_sigma
 from black_scholes import BlackScholes
 
 
@@ -60,6 +64,32 @@ st.markdown("""
 </style>
             """, unsafe_allow_html=True)
 
+
+# Live spot price helper
+@st.cache_data(ttl=60)  # cache for 60s to avoid rate limits
+def fetch_spot_from_yf(ticker: str):
+    """
+    Returns (spot_price, meta_dict) or (None, error_message).
+    Tries intraday (1m) first, falls back to last daily close.
+    """
+    try:
+        tkr = yf.Ticker(ticker.strip())
+        intraday = tkr.history(period="1d", interval="1m", auto_adjust=True)
+        if not intraday.empty:
+            price = float(intraday["Close"].dropna().iloc[-1])
+            asof = intraday.index[-1].to_pydatetime()
+            return price, {"source": "intraday (1m)", "asof": asof}
+
+        daily = tkr.history(period="5d", interval="1d", auto_adjust=True)
+        if not daily.empty:
+            price = float(daily["Close"].dropna().iloc[-1])
+            asof = daily.index[-1].to_pydatetime()
+            return price, {"source": "daily close", "asof": asof}
+
+        return None, "No price data returned for this ticker."
+    except Exception as e:
+        return None, f"Yahoo Finance error: {e}"
+
 #Sidebar
 with st.sidebar:
     st.header("📊 Black-Scholes Model Inputs")
@@ -67,10 +97,43 @@ with st.sidebar:
     linkedin_url = "https://www.linkedin.com/in/nitishchawla-/"
     st.markdown(f'<a href="{linkedin_url}" target="_blank" style="text-decoration: none; color: inherit;"><img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="25" height="25" style="vertical-align: middle; margin-right: 10px;">`Nitish Chawla`</a>', unsafe_allow_html=True)
 
-    current_price = st.number_input("Current Price", min_value=0.0, step=1.0, value=100.0, help="The current market price of the underlying asset.")
+    ticker = st.text_input(
+    "Ticker Symbol",
+    value="AAPL",
+    help="Stock ticker used to fetch the current market price",
+    )
+    try:
+        ticker_data = yf.Ticker(ticker)
+        current_price = ticker_data.history(period="1d")["Close"].iloc[-1]
+        st.write(f"Current Price for {ticker}: ${current_price:.2f}")
+    except Exception:
+        current_price = 100.0
+        st.warning(
+            "Unable to fetch price for the ticker. Using default price of $100.0."
+        )
+    
     strike = st.number_input("Strike Price", min_value=0.0, step=1.0, value=100.0, help="The price at which the option can be exercised at maturity.")
     time_to_maturity = st.number_input("Time to Maturity (Years)", min_value=0.0, step=0.01, value=1.0, help="The time remaining until the option's expiration date, measured in years.")
-    volatility = st.number_input("Volatility (σ)", min_value=0.0, max_value=1.0, step=0.01, value=0.2, help="The estimated standard deviation of the asset's returns, representing market volatility.")
+    use_ml_sigma = st.checkbox("Use ML‑forecasted volatility", value=False, help="Predict σ from recent prices (if model/data exist).")
+
+    if use_ml_sigma:
+        try:
+            artefact = joblib.load("models/sigma_model.joblib")
+            sigma_model = artefact["model"]
+            feature_cols = artefact["feature_cols"]
+
+            hist = pd.read_csv("data/underlying_prices.csv", parse_dates=["date"])
+            df_feat = make_features(hist)
+            latest_row = df_feat.iloc[-1]
+            volatility = predict_sigma(sigma_model, feature_cols, latest_row)
+
+            st.success(f"ML σ (annualized): {volatility:.2%}")
+        except Exception as e:
+            st.warning(f"ML σ unavailable ({e}). Using manual input instead.")
+            volatility = st.number_input("Volatility (σ)", min_value=0.01, max_value=1.0, step=0.01, value=0.20, help="The estimated standard deviation of the asset's returns, representing market volatility.")
+    else:
+        volatility = st.number_input("Volatility (σ)", min_value=0.01, max_value=1.0, step=0.01, value=0.20, help="The estimated standard deviation of the asset's returns, representing market volatility.")
+
     interest_rate = st.number_input("Risk-Free Interest Rate", min_value=0.0, max_value=1.0, step=0.01, value=0.05, help="The risk-free interest rate, often based on government bonds, representing the cost of capital.")
 
     st.markdown("---")
