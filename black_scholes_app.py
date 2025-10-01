@@ -13,6 +13,7 @@ import seaborn as sns
 import yfinance as yf
 from datetime import date, timedelta
 from black_scholes import BlackScholes
+from ml_vol import learn_sigma
 
 #Page Configuration
 st.set_page_config(
@@ -117,6 +118,46 @@ with st.sidebar:
     volatility = volatility_pct / 100
     interest_rate = interest_rate_pct / 100
     st.markdown("---")
+    st.subheader("Volatility Source")
+    vol_source = st.radio("Choose σ source", ["Manual", "ML (learned from history)"], index=0)
+
+    model_choice = None
+    if vol_source == "ML (learned from history)":
+        model_choice = st.selectbox("Model", ["Ridge (linear)", "Random Forest"], index=0)
+
+        H_std = int(time_to_maturity * 252)
+        H_std = 5 if H_std < 5 else (252 if H_std > 252 else H_std)
+
+        MIN_HISTORY_DAYS_STD = 750
+        RIDGE_ALPHA_STD = 10.0
+        RF_TREES_STD = 300
+        RF_MAX_DEPTH_STD = None
+        CV_SPLITS_STD = 5
+
+        with st.spinner("Training volatility model…"):
+            try:
+                px_series = yf.Ticker(ticker).history(period="10y")["Close"].dropna()
+
+                res = learn_sigma(
+                    px=px_series,
+                    horizon_days=H_std,
+                    model_type="ridge" if "Ridge" in model_choice else "rf",
+                    min_history_days=MIN_HISTORY_DAYS_STD,
+                    ridge_alpha=RIDGE_ALPHA_STD,
+                    rf_n_estimators=RF_TREES_STD,
+                    rf_max_depth=RF_MAX_DEPTH_STD,
+                    cv_splits=CV_SPLITS_STD,
+                )
+                volatility = res["sigma"]              # override manual σ
+                volatility_pct = volatility * 100.0
+                st.success(f"ML σ (annualized) for {H_std} trading days: {volatility:.4f} ({volatility_pct:.2f}%)")
+                if res["mae_cv"] is not None:
+                    st.caption(f"Time-series CV MAE (σ): {res['mae_cv']:.4f}")
+            except Exception as e:
+                st.error(f"ML volatility failed: {e}. Reverting to manual σ.")
+
+    st.markdown("---")
+
     calculate_button = st.button("Heatmap Parameters")
     spot_min = st.number_input("Min Spot Price", min_value=0.01, value=current_price * 0.8, step=0.01)
     spot_max = st.number_input("Max Spot Price", min_value=0.01, value=current_price * 1.2, step=0.01)
