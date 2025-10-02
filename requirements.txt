@@ -6,3 +6,5 @@ scipy
 matplotlib
 seaborn
 yfinance
+scikit-learn
+requests
