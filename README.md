@@ -25,9 +25,7 @@ This project implements the **Black-Scholes Option Pricing Model** using **Strea
 - **Scikit-learn**: Ridge Regression & Random Forest models for volatility prediction.  
 - **NumPy / Pandas**: Numerical computation and data handling.  
 - **Matplotlib / Seaborn / Plotly**: Heatmap and chart visualizations.  
-- **Yahoo Finance API**: Live financial data integration.  
-
-   ``` 
+- **Yahoo Finance API**: Live financial data integration.
 
 ## Author  
 [Nitish Chawla](https://www.linkedin.com/in/nitishchawla-/)  
